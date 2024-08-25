@@ -80,7 +80,11 @@ func (h handler) CreateCouponReservation(c *gin.Context) {
 		CampaignID: uint(campaignID),
 		UserID:     userID,
 	}
-	if _, err := h.campaignService.CreateCouponReservation(ctx, input); err != nil {
+	_, err = h.campaignService.CreateCouponReservation(ctx, input)
+	if err == service.ErrNotReservationTime {
+		c.Status(http.StatusForbidden)
+		return
+	} else if err != nil {
 		c.Status(http.StatusInternalServerError)
 		return
 	}

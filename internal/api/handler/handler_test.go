@@ -75,11 +75,28 @@ func (s *handlerSuite) TestCreateCouponReservation_Success() {
 		CampaignID: 1,
 		UserID:     mockUserID,
 	}
-	s.mockService.On("CreateCouponReservation", mockCTX, createCouponReservationInput).Return(nil, nil)
+	s.mockService.On("CreateCouponReservation", mockCTX, createCouponReservationInput).Return(nil, nil).Once()
 
 	code, err := s.request(http.MethodPost, "/campaigns/1/reservations", nil)
 	s.NoError(err)
 	s.Equal(http.StatusNoContent, code)
+}
+
+func (s *handlerSuite) TestCreateCouponReservation_InvalidTime() {
+	mockUserID := "mock_user_id"
+	getUserID = func() (string, error) {
+		return mockUserID, nil
+	}
+
+	createCouponReservationInput := service.CreateCouponReservationInput{
+		CampaignID: 1,
+		UserID:     mockUserID,
+	}
+	s.mockService.On("CreateCouponReservation", mockCTX, createCouponReservationInput).Return(nil, service.ErrNotReservationTime).Once()
+
+	code, err := s.request(http.MethodPost, "/campaigns/1/reservations", nil)
+	s.NoError(err)
+	s.Equal(http.StatusForbidden, code)
 }
 
 func (s *handlerSuite) TestCreateCouponReservation_InvalidCampaignID() {

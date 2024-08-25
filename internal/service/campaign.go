@@ -1,6 +1,9 @@
 package service
 
 import (
+	"errors"
+	"time"
+
 	"github.com/asymptoter/tonx-take-home-test/internal/repository"
 	"github.com/asymptoter/tonx-take-home-test/pkg/ctx"
 	"github.com/google/uuid"
@@ -8,6 +11,11 @@ import (
 
 var (
 	newUUIDString = uuid.NewString
+	timeNow       = time.Now
+)
+
+var (
+	ErrNotReservationTime = errors.New("not reservationtime")
 )
 
 type Campaign struct {
@@ -80,10 +88,17 @@ func (s campaignService) GetLatest(c ctx.CTX, p GetLatestCampaignInput) (*Campai
 }
 
 func (s campaignService) CreateCouponReservation(c ctx.CTX, p CreateCouponReservationInput) (*CouponReservation, error) {
+	// 用戶每天只有 22:55:00 到 22:58:59 可以預約
+	hour, min, _ := timeNow().Clock()
+	if hour != 22 || min < 55 || min > 58 {
+		c.With("now", timeNow().String()).Error(ErrNotReservationTime)
+		return nil, ErrNotReservationTime
+	}
+
 	// 根據 campaign_id 和 user_id 來決定 user 能不能拿到 coupon
 	v := p.CampaignID
-	for _, c := range p.UserID {
-		v += uint(c)
+	for _, b := range p.UserID {
+		v += uint(b)
 	}
 
 	couponCode := ""

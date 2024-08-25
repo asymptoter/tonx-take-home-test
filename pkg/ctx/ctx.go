@@ -28,8 +28,8 @@ func With(parent CTX, fields ...any) CTX {
 	}
 }
 
-func (c *CTX) With(fields ...any) *CTX {
-	return &CTX{
+func (c CTX) With(fields ...any) CTX {
+	return CTX{
 		Context: c.Context,
 		Logger:  c.Logger.With(fields...),
 	}

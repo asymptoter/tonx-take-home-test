@@ -33,6 +33,11 @@ func (s *campaignServiceSuite) TearDownSuite() {
 }
 
 func (s *campaignServiceSuite) SetupTest() {
+	loc, err := time.LoadLocation("Asia/Taipei")
+	s.NoError(err)
+	timeNow = func() time.Time {
+		return time.Date(2024, 8, 26, 22, 55, 0, 0, loc)
+	}
 }
 
 func (s *campaignServiceSuite) TestCreate() {
@@ -121,6 +126,23 @@ func (s *campaignServiceSuite) TestCreateCouponReservationWithEmptyCouponCode() 
 	s.Equal(campaignID, res.CampaignID)
 	s.Equal(userID, res.UserID)
 	s.Equal(mockCouponCode, res.CouponCode)
+}
+
+func (s *campaignServiceSuite) TestCreateCouponReservationWithInvalidResercationTimeError() {
+	loc, err := time.LoadLocation("Asia/Taipei")
+	s.NoError(err)
+	timeNow = func() time.Time {
+		return time.Date(2024, 8, 26, 22, 54, 0, 0, loc)
+	}
+	campaignID := uint(1)
+	userID := "user_id_4"
+
+	createCouponReservationInput := CreateCouponReservationInput{
+		CampaignID: campaignID,
+		UserID:     userID,
+	}
+	_, err = s.service.CreateCouponReservation(s.ctx, createCouponReservationInput)
+	s.Equal(ErrNotReservationTime, err)
 }
 
 func (s *campaignServiceSuite) TestGetCouponReservation() {
