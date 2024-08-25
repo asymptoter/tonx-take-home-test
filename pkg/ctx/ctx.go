@@ -14,23 +14,24 @@ type CTX struct {
 }
 
 func Background() CTX {
+	logger, _ := zap.NewProduction()
 	return CTX{
 		Context: context.Background(),
-		Logger:  zap.NewExample().Sugar(),
+		Logger:  logger.Sugar(),
 	}
 }
 
 func With(parent CTX, fields ...any) CTX {
 	return CTX{
 		Context: parent.Context,
-		Logger:  parent.Logger.With(fields),
+		Logger:  parent.Logger.With(fields...),
 	}
 }
 
-func (c CTX) With(fields ...any) CTX {
-	return CTX{
+func (c *CTX) With(fields ...any) *CTX {
+	return &CTX{
 		Context: c.Context,
-		Logger:  c.Logger.With(fields),
+		Logger:  c.Logger.With(fields...),
 	}
 }
 
